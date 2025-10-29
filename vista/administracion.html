@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control Administrativo - Sistema de Reservas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-dark: #00312D;
+            --accent-green: #BFF102;
+        }
+
+        .btn-accent {
+            background-color: var(--accent-green);
+            color: var(--primary-dark);
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-accent:hover {
+            background-color: #a8d900;
+        }
+
+        .stat-card {
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .table-custom th {
+            background-color: var(--primary-dark);
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i class="bi bi-speedometer2 me-2"></i>Panel de Control Administrativo
+            </h1>
+        </div>
+
+        <!-- Tres tarjetas de resumen -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <div class="text-muted small">Total Salas</div>
+                        <h3 class="text-primary-dark">8</h3>
+                        <small class="text-muted">Activas: 7</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <div class="text-muted small">Reservas Hoy</div>
+                        <h3 class="text-primary-dark">12</h3>
+                        <small class="text-muted">En curso: 3</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card">
+                    <div class="card-body">
+                        <div class="text-muted small">Salas Ocupadas Ahora</div>
+                        <h3 class="text-primary-dark">5</h3>
+                        <small class="text-muted">Disponibles: 3</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reservas Recientes -->
+        <div class="card mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Reservas Recientes</h5>
+                <button class="btn btn-accent btn-sm">
+                    <i class="bi bi-list-ul me-1"></i>Ver Todas las Reservas
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Sala</th>
+                                <th>Horario</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ana Rodríguez</td>
+                                <td>Sala A-101</td>
+                                <td>14:00 - 16:00</td>
+                                <td>
+                                    <span class="badge bg-success">En Curso</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Carlos Méndez</td>
+                                <td>Sala B-205</td>
+                                <td>16:30 - 18:30</td>
+                                <td>
+                                    <span class="badge bg-warning text-dark">Confirmada</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Laura González</td>
+                                <td>Sala C-102</td>
+                                <td>10:00 - 12:00</td>
+                                <td>
+                                    <span class="badge bg-secondary">Completada</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Salas -->
+        <div class="card mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Salas</h5>
+                <button class="btn btn-accent btn-sm">
+                    <i class="bi bi-door-closed me-1"></i>Gestionar Todas las Salas
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center p-3 bg-success bg-opacity-10 rounded">
+                            <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
+                            <div>
+                                <h5 class="mb-0">7</h5>
+                                <small class="text-muted">Disponibles</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center p-3 bg-warning bg-opacity-10 rounded">
+                            <i class="bi bi-clock-fill text-warning fs-4 me-3"></i>
+                            <div>
+                                <h5 class="mb-0">3</h5>
+                                <small class="text-muted">Reservadas</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center p-3 bg-danger bg-opacity-10 rounded">
+                            <i class="bi bi-x-circle-fill text-danger fs-4 me-3"></i>
+                            <div>
+                                <h5 class="mb-0">1</h5>
+                                <small class="text-muted">En Mantenimiento</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center p-3 bg-info bg-opacity-10 rounded">
+                            <i class="bi bi-people-fill text-info fs-4 me-3"></i>
+                            <div>
+                                <h5 class="mb-0">5</h5>
+                                <small class="text-muted">Ocupadas Ahora</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <button class="btn btn-accent w-100 py-3">
+                            <i class="bi bi-plus-circle me-2"></i>Agregar Nueva Sala
+                        </button>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <button class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-graph-up me-2"></i>Generar Reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
