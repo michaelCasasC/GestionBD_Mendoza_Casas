@@ -206,30 +206,78 @@
                 right: 20px;
             }
         }
+
+
+        .barra-superior {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 49, 45, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .enlace-nav {
+            color: var(--color-oscuro);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .enlace-nav:hover {
+            background: var(--color-fondo);
+            color: var(--color-verde-medio);
+        }
+
+        .enlace-nav.activo {
+            background: var(--color-fondo);
+            color: var(--color-verde-medio);
+            font-weight: 600;
+        }
+
+        .boton-cerrar-sesion {
+            background: var(--color-verde-claro);
+            color: white;
+            padding: 10px 28px;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .boton-cerrar-sesion:hover {
+            background: var(--color-verde-medio);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(114, 191, 0, 0.3);
+        }
     </style>
 </head>
 
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-calendar-check me-2"></i>
-                Sistema de Reservas
-            </a>
-            <div class="d-flex align-items-center">
-                <span class="text-white me-3">
-                    <i class="fas fa-user-circle me-2"></i>Estudiante
-                </span>
+    <div class="barra-superior">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fw-bold fs-5" style="color: var(--color-oscuro);">Sistema de Reservas</span>
+                </div>
+
+                <a href="#" class="enlace-nav">
+                    <i class="fas fa-user me-1"></i>Mi Perfil
+                </a>
+                <button class="btn boton-cerrar-sesion" onclick="cerrarSesion()">
+                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                </button>
             </div>
+
         </div>
-    </nav>
+    </div>
 
     <!-- Main Content -->
     <div class="container my-5">
         <h1 class="page-title">
-            <i class="fas fa-bookmark me-2"></i>Mis Reservas
-        </h1>
+            Mis Reservas </h1>
 
         <!-- Filter Section -->
         <div class="filter-section">

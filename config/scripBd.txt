@@ -1,0 +1,268 @@
+-- =============================================
+-- CREAR BASE DE DATOS
+-- =============================================
+CREATE DATABASE SistemaReservas;
+GO
+
+USE SistemaReservas;
+GO
+
+-- =============================================
+-- CREAR TABLAS
+-- =============================================
+
+CREATE TABLE Rol (
+    id_rol INT PRIMARY KEY IDENTITY(1,1),
+    nombre VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Usuario (
+    id_usuario INT PRIMARY KEY IDENTITY(1,1),
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    correo VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    id_rol INT FOREIGN KEY REFERENCES Rol(id_rol),
+    activo BIT DEFAULT 1,
+    fecha_registro DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Tipo_Sala (
+    id_tipo INT PRIMARY KEY IDENTITY(1,1),
+    nombre VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Sala (
+    id_sala INT PRIMARY KEY IDENTITY(1,1),
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    capacidad INT NOT NULL,
+    equipamiento VARCHAR(255),
+    estado VARCHAR(20) DEFAULT 'activa' CHECK (estado IN ('activa', 'mantenimiento')),
+    id_tipo INT FOREIGN KEY REFERENCES Tipo_Sala(id_tipo)
+);
+
+CREATE TABLE Reserva (
+    id_reserva INT PRIMARY KEY IDENTITY(1,1),
+    id_usuario INT FOREIGN KEY REFERENCES Usuario(id_usuario),
+    id_sala INT FOREIGN KEY REFERENCES Sala(id_sala),
+    fecha DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fin TIME NOT NULL,
+    estado VARCHAR(20) DEFAULT 'confirmada' CHECK (estado IN ('confirmada', 'en_curso', 'completada', 'cancelada')),
+    fecha_creacion DATETIME DEFAULT GETDATE()
+);
+
+-- =============================================
+-- CREAR ROLES DE SQL SERVER
+-- =============================================
+CREATE ROLE rol_estudiante;
+CREATE ROLE rol_administrativo;
+CREATE ROLE rol_admin;
+GO
+
+-- =============================================
+-- CREAR LOGINS Y USUARIOS DE BD
+-- =============================================
+CREATE LOGIN login_estudiante WITH PASSWORD = 'Estudiante123!';
+CREATE LOGIN login_administrativo WITH PASSWORD = 'Administrativo123!';
+CREATE LOGIN login_admin WITH PASSWORD = 'Admin123!';
+GO
+
+CREATE USER usuario_estudiante FOR LOGIN login_estudiante;
+CREATE USER usuario_administrativo FOR LOGIN login_administrativo;
+CREATE USER usuario_admin FOR LOGIN login_admin;
+GO
+
+ALTER ROLE rol_estudiante ADD MEMBER usuario_estudiante;
+ALTER ROLE rol_administrativo ADD MEMBER usuario_administrativo;
+ALTER ROLE rol_admin ADD MEMBER usuario_admin;
+GO
+
+-- =============================================
+-- INSERTAR DATOS INICIALES
+-- =============================================
+INSERT INTO Rol (nombre) VALUES 
+('estudiante'),
+('administrativo'),
+('admin');
+GO
+
+INSERT INTO Tipo_Sala (nombre) VALUES 
+('aula'),
+('laboratorio'),
+('sala_estudio');
+GO
+
+INSERT INTO Usuario (nombre, apellido, correo, password_hash, id_rol) VALUES 
+('Ana', 'Rodríguez', 'estudiante@universidad.edu', '123456', 1),
+('María', 'González', 'administrativo@universidad.edu', '123456', 2),
+('Carlos', 'Méndez', 'admin@universidad.edu', '123456', 3);
+GO
+
+INSERT INTO Sala (nombre, capacidad, equipamiento, estado, id_tipo) VALUES 
+('Sala A-101', 4, 'Proyector, Pizarra', 'activa', 1),
+('Laboratorio B-205', 6, 'Computadoras, Proyector', 'activa', 2),
+('Sala Estudio C-102', 8, 'Pizarra', 'activa', 3);
+GO
+
+-- =============================================
+-- TRANSACCIÓN 1: CREAR RESERVA CON VERIFICACIÓN
+-- =============================================
+CREATE PROCEDURE sp_CrearReserva
+    @id_usuario INT,
+    @id_sala INT, 
+    @fecha DATE,
+    @hora_inicio TIME,
+    @hora_fin TIME
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Verificar que la sala existe y está activa
+        IF NOT EXISTS (SELECT 1 FROM Sala WHERE id_sala = @id_sala AND estado = 'activa')
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 'error' as status, 'La sala no está disponible' as mensaje;
+            RETURN;
+        END
+
+        -- Verificar que no hay reservas conflictivas
+        IF EXISTS (
+            SELECT 1 FROM Reserva 
+            WHERE id_sala = @id_sala 
+            AND fecha = @fecha
+            AND estado IN ('confirmada', 'en_curso')
+            AND (
+                (@hora_inicio BETWEEN hora_inicio AND hora_fin) OR
+                (@hora_fin BETWEEN hora_inicio AND hora_fin) OR
+                (hora_inicio BETWEEN @hora_inicio AND @hora_fin)
+            )
+        )
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 'error' as status, 'La sala no está disponible en ese horario' as mensaje;
+            RETURN;
+        END
+
+        -- Crear la reserva
+        INSERT INTO Reserva (id_usuario, id_sala, fecha, hora_inicio, hora_fin, estado)
+        VALUES (@id_usuario, @id_sala, @fecha, @hora_inicio, @hora_fin, 'confirmada');
+        
+        DECLARE @nueva_reserva_id INT = SCOPE_IDENTITY();
+
+        COMMIT TRANSACTION;
+        
+        SELECT 'success' as status, 'Reserva creada exitosamente' as mensaje, @nueva_reserva_id as id_reserva;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        SELECT 'error' as status, ERROR_MESSAGE() as mensaje;
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- TRANSACCIÓN 2: CANCELAR RESERVA
+-- =============================================
+CREATE PROCEDURE sp_CancelarReserva
+    @id_reserva INT,
+    @id_usuario INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Verificar que la reserva existe y pertenece al usuario (o es admin)
+        IF NOT EXISTS (
+            SELECT 1 FROM Reserva 
+            WHERE id_reserva = @id_reserva 
+            AND (id_usuario = @id_usuario OR @id_usuario IN (SELECT id_usuario FROM Usuario WHERE id_rol = 3))
+        )
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 'error' as status, 'No tienes permisos para cancelar esta reserva' as mensaje;
+            RETURN;
+        END
+
+        -- Actualizar estado de la reserva
+        UPDATE Reserva SET estado = 'cancelada' WHERE id_reserva = @id_reserva;
+
+        COMMIT TRANSACTION;
+        
+        SELECT 'success' as status, 'Reserva cancelada exitosamente' as mensaje;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        SELECT 'error' as status, ERROR_MESSAGE() as mensaje;
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- TRANSACCIÓN 3: CAMBIAR ESTADO DE SALA
+-- =============================================
+CREATE PROCEDURE sp_CambiarEstadoSala
+    @id_sala INT,
+    @nuevo_estado VARCHAR(20),
+    @id_usuario INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Verificar que el usuario es administrativo o admin
+        IF NOT EXISTS (
+            SELECT 1 FROM Usuario 
+            WHERE id_usuario = @id_usuario AND id_rol IN (2, 3)
+        )
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 'error' as status, 'No tienes permisos para gestionar salas' as mensaje;
+            RETURN;
+        END
+
+        -- Verificar que la sala existe
+        IF NOT EXISTS (SELECT 1 FROM Sala WHERE id_sala = @id_sala)
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 'error' as status, 'La sala no existe' as mensaje;
+            RETURN;
+        END
+
+        -- Actualizar estado de la sala
+        UPDATE Sala SET estado = @nuevo_estado WHERE id_sala = @id_sala;
+
+        COMMIT TRANSACTION;
+        
+        SELECT 'success' as status, 'Estado de sala actualizado exitosamente' as mensaje;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        SELECT 'error' as status, ERROR_MESSAGE() as mensaje;
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- ASIGNAR PERMISOS BÁSICOS
+-- =============================================
+GRANT EXECUTE ON sp_CrearReserva TO rol_estudiante;
+GRANT EXECUTE ON sp_CancelarReserva TO rol_estudiante;
+GRANT SELECT ON Sala TO rol_estudiante;
+GRANT SELECT, INSERT ON Reserva TO rol_estudiante;
+
+GRANT EXECUTE ON sp_CrearReserva TO rol_administrativo;
+GRANT EXECUTE ON sp_CancelarReserva TO rol_administrativo;
+GRANT EXECUTE ON sp_CambiarEstadoSala TO rol_administrativo;
+GRANT SELECT, INSERT, UPDATE ON Sala TO rol_administrativo;
+GRANT SELECT, INSERT, UPDATE ON Reserva TO rol_administrativo;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON Usuario TO rol_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Sala TO rol_admin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON Reserva TO rol_admin;
+GRANT EXECUTE TO rol_admin;
+GO
