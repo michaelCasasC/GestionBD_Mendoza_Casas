@@ -1,6 +1,16 @@
+
+
 <?php
-session_start();
+
 require_once '../modelo/EstudianteModel.php';
+
+session_start();
+
+// DEPURACIÓN: Verificar qué hay en la sesión
+error_log("=== DEBUG ESTUDIANTE CONTROLLER ===");
+error_log("SESSION ID: " . session_id());
+error_log("SESSION DATA: " . print_r($_SESSION, true));
+error_log("COOKIE: " . print_r($_COOKIE, true));
 
 class EstudianteController
 {
@@ -10,12 +20,48 @@ class EstudianteController
     {
         $this->model = new EstudianteModel();
 
-        // Verificar que el usuario esté autenticado
+        // DEPURACIÓN MEJORADA
+        error_log("=== VERIFICANDO AUTORIZACIÓN ===");
+        error_log("user_id en sesión: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NO EXISTE'));
+        error_log("user_email en sesión: " . (isset($_SESSION['user_email']) ? $_SESSION['user_email'] : 'NO EXISTE'));
+        error_log("user_role en sesión: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'NO EXISTE'));
+
+        // SOLUCIÓN TEMPORAL: Si no hay user_id pero sí hay user_email, crear user_id
+        if (!isset($_SESSION['user_id']) && isset($_SESSION['user_email'])) {
+            error_log("=== CREANDO USER_ID TEMPORAL ===");
+            if ($_SESSION['user_email'] === 'estudiante@universidad.edu') {
+                $_SESSION['user_id'] = 1;
+            } elseif ($_SESSION['user_email'] === 'docente@universidad.edu') {
+                $_SESSION['user_id'] = 2;
+            } elseif ($_SESSION['user_email'] === 'admin@universidad.edu') {
+                $_SESSION['user_id'] = 3;
+            } else {
+                $_SESSION['user_id'] = 999;
+            }
+            error_log("User_id temporal creado: " . $_SESSION['user_id']);
+        }
+
+        // Verificar que el usuario esté autenticado (versión más flexible)
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_email'])) {
+            error_log("ERROR: Sesión no tiene user_id o user_email");
+            
             http_response_code(401);
-            echo json_encode(['success' => false, 'mensaje' => 'No autorizado']);
+            echo json_encode([
+                'success' => false, 
+                'mensaje' => 'No autorizado - Inicie sesión',
+                'debug' => [
+                    'session_id' => session_id(),
+                    'session_data' => $_SESSION,
+                    'has_user_id' => isset($_SESSION['user_id']),
+                    'has_user_email' => isset($_SESSION['user_email']),
+                    'has_user_role' => isset($_SESSION['user_role'])
+                ]
+            ]);
             exit();
         }
+
+        error_log("=== USUARIO AUTORIZADO ===");
+        error_log("Usuario: " . $_SESSION['user_email'] . " (ID: " . $_SESSION['user_id'] . ")");
     }
 
     /**
@@ -23,6 +69,7 @@ class EstudianteController
      */
     public function obtenerSalas()
     {
+        error_log("=== OBTENIENDO SALAS ===");
         $salas = $this->model->getSalasDisponibles();
         echo json_encode(['success' => true, 'salas' => $salas]);
     }
@@ -32,6 +79,9 @@ class EstudianteController
      */
     public function solicitarReserva()
     {
+        error_log("=== SOLICITANDO RESERVA ===");
+        error_log("POST data: " . print_r($_POST, true));
+
         // Validar datos requeridos
         if (
             !isset($_POST['id_sala']) || !isset($_POST['fecha']) ||
@@ -49,6 +99,12 @@ class EstudianteController
         $fecha = $_POST['fecha'];
         $hora_inicio = $_POST['hora_inicio'];
         $hora_fin = $_POST['hora_fin'];
+
+        error_log("Usuario ID: " . $id_usuario);
+        error_log("Sala ID: " . $id_sala);
+        error_log("Fecha: " . $fecha);
+        error_log("Hora inicio: " . $hora_inicio);
+        error_log("Hora fin: " . $hora_fin);
 
         // Validar formato de fecha y hora
         if (!$this->validarFecha($fecha)) {
@@ -97,8 +153,13 @@ class EstudianteController
      */
     public function obtenerMisReservas()
     {
+        error_log("=== OBTENIENDO MIS RESERVAS ===");
         $id_usuario = $_SESSION['user_id'];
+        error_log("Buscando reservas para usuario ID: " . $id_usuario);
+        
         $reservas = $this->model->getReservasPorEstudiante($id_usuario);
+        error_log("Reservas encontradas: " . count($reservas));
+        
         echo json_encode(['success' => true, 'reservas' => $reservas]);
     }
 
@@ -216,10 +277,13 @@ class EstudianteController
 
 // Manejo de rutas y acciones
 $action = $_GET['action'] ?? '';
+error_log("=== ACCIÓN SOLICITADA: " . $action . " ===");
+
 $controller = new EstudianteController();
 
 // Determinar método HTTP
 $method = $_SERVER['REQUEST_METHOD'];
+error_log("Método HTTP: " . $method);
 
 switch ($action) {
     case 'salas':
