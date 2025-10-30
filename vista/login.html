@@ -238,10 +238,24 @@
             iniciarSesion('Administrador');
         }
 
-        // Función para iniciar sesión
+        // Función para iniciar sesión y redirigir
         function iniciarSesion(tipoUsuario) {
             alert('¡Bienvenido! Has ingresado como ' + tipoUsuario);
-            console.log('Tipo de usuario:', tipoUsuario);
+
+            // Redirigir según el tipo de usuario
+            switch (tipoUsuario) {
+                case 'Estudiante':
+                    window.location.href = 'estudiante.html';
+                    break;
+                case 'Administrativo':
+                    window.location.href = 'administracion.html';
+                    break;
+                case 'Administrador':
+                    window.location.href = 'admin.html';
+                    break;
+                default:
+                    alert('Tipo de usuario no reconocido');
+            }
         }
 
         // Manejo del formulario
@@ -252,8 +266,16 @@
             const contrasena = document.getElementById('contrasena').value;
 
             if (correo && contrasena) {
-                alert('¡Inicio de sesión exitoso!');
-                console.log('Datos de ingreso:', { correo });
+                // Determinar el tipo de usuario basado en el email
+                let tipoUsuario = 'Estudiante'; // Por defecto
+
+                if (correo === 'admin@ejemplo.com') {
+                    tipoUsuario = 'Administrativo';
+                } else if (correo === 'superadmin@ejemplo.com') {
+                    tipoUsuario = 'Administrador';
+                }
+
+                iniciarSesion(tipoUsuario);
             } else {
                 alert('Por favor, completa todos los campos');
             }

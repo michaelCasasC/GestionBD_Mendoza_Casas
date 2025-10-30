@@ -30,138 +30,98 @@
             border: none;
         }
 
-        .stat-card {
-            border-left: 4px solid var(--accent-green);
+        .section-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .section-header {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+        }
+
+        .section-content {
+            display: none;
+            padding: 0;
+        }
+
+        .section-content.show {
+            display: block;
         }
     </style>
 </head>
 
 <body>
-    <div class="container mt-4">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3">
-                <i class="bi bi-shield-check me-2"></i>Panel de Administración del Sistema
-            </h1>
-            <button class="btn btn-accent">
-                <i class="bi bi-gear me-1"></i>Configuración
-            </button>
-        </div>
-
-        <!-- Estadísticas del Sistema -->
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="text-muted small">Total Usuarios</div>
-                        <h3 class="text-primary-dark">45</h3>
-                        <small class="text-muted">Activos: 42</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="text-muted small">Estudiantes Activos</div>
-                        <h3 class="text-primary-dark">40</h3>
-                        <small class="text-muted">Registrados este mes: 5</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="text-muted small">Personal Administrativo</div>
-                        <h3 class="text-primary-dark">3</h3>
-                        <small class="text-muted">Administradores: 2</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="text-muted small">Reservas del Mes</div>
-                        <h3 class="text-primary-dark">156</h3>
-                        <small class="text-muted">Promedio diario: 7</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gestión de Usuarios -->
-        <div class="card mb-4">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Gestión de Usuarios</h5>
-                <button class="btn btn-accent btn-sm">
-                    <i class="bi bi-person-plus me-1"></i>Agregar Usuario
+    <!-- Navbar con logout -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #00312D;">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shield-check"></i> Panel Admin
+            </a>
+            <div class="navbar-nav ms-auto">
+                <button class="btn btn-outline-warning btn-sm" onclick="cerrarSesion()">
+                    <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
                 </button>
             </div>
-            <div class="card-body p-0">
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="h3 mb-4">
+            <i class="bi bi-shield-check me-2"></i>Panel de Administración
+        </h1>
+
+        <!-- SECCIÓN ESTUDIANTES -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('estudiantes')">
+                <h5 class="mb-0">
+                    <i class="bi bi-people me-2"></i>Estudiantes
+                    <small class="text-muted ms-2">(40 registros)</small>
+                </h5>
+            </div>
+            <div class="section-content" id="estudiantes-section">
                 <div class="table-responsive">
                     <table class="table table-hover table-custom mb-0">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Email</th>
-                                <th>Rol</th>
+                                <th>Fecha Registro</th>
                                 <th>Estado</th>
-                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1001</td>
                                 <td>Ana Rodríguez</td>
                                 <td>ana@universidad.edu</td>
-                                <td>
-                                    <span class="badge bg-warning text-dark">Estudiante</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">Activo</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-person-x"></i>
-                                    </button>
-                                </td>
+                                <td>2024-10-15</td>
+                                <td><span class="badge bg-success">Activo</span></td>
                             </tr>
                             <tr>
-                                <td>Carlos Méndez</td>
-                                <td>carlos@universidad.edu</td>
-                                <td>
-                                    <span class="badge bg-success">Administrativo</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">Activo</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-person-x"></i>
-                                    </button>
-                                </td>
+                                <td>1002</td>
+                                <td>Juan Pérez</td>
+                                <td>juan@universidad.edu</td>
+                                <td>2024-10-16</td>
+                                <td><span class="badge bg-success">Activo</span></td>
                             </tr>
                             <tr>
-                                <td>María González</td>
+                                <td>1003</td>
+                                <td>María López</td>
                                 <td>maria@universidad.edu</td>
-                                <td>
-                                    <span class="badge bg-danger">Admin</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">Activo</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-person-x"></i>
-                                    </button>
-                                </td>
+                                <td>2024-10-17</td>
+                                <td><span class="badge bg-success">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td>1004</td>
+                                <td>Carlos García</td>
+                                <td>carlos@universidad.edu</td>
+                                <td>2024-10-18</td>
+                                <td><span class="badge bg-warning">Inactivo</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -169,37 +129,201 @@
             </div>
         </div>
 
-        <!-- Acciones del Sistema -->
-        <div class="card">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Acciones del Sistema</h5>
+        <!-- SECCIÓN DOCENTES/ADMINISTRATIVOS -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('docentes')">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-badge me-2"></i>Personal Administrativo y Docentes
+                    <small class="text-muted ms-2">(5 registros)</small>
+                </h5>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <button class="btn btn-outline-primary w-100 py-3">
-                            <i class="bi bi-people fs-4 d-block mb-2"></i>
-                            Gestionar Todos los Usuarios
-                        </button>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <button class="btn btn-outline-success w-100 py-3">
-                            <i class="bi bi-clipboard-data fs-4 d-block mb-2"></i>
-                            Ver Logs del Sistema
-                        </button>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <button class="btn btn-outline-info w-100 py-3">
-                            <i class="bi bi-gear fs-4 d-block mb-2"></i>
-                            Configuración General
-                        </button>
-                    </div>
+            <div class="section-content" id="docentes-section">
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2001</td>
+                                <td>Carlos Méndez</td>
+                                <td>carlos@universidad.edu</td>
+                                <td><span class="badge bg-success">Administrativo</span></td>
+                                <td><span class="badge bg-success">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td>2002</td>
+                                <td>Laura Martínez</td>
+                                <td>laura@universidad.edu</td>
+                                <td><span class="badge bg-success">Administrativo</span></td>
+                                <td><span class="badge bg-success">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td>2003</td>
+                                <td>Pedro Sánchez</td>
+                                <td>pedro@universidad.edu</td>
+                                <td><span class="badge bg-info">Docente</span></td>
+                                <td><span class="badge bg-success">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td>2004</td>
+                                <td>Ana García</td>
+                                <td>ana.docente@universidad.edu</td>
+                                <td><span class="badge bg-info">Docente</span></td>
+                                <td><span class="badge bg-success">Activo</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN SALAS -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('salas')">
+                <h5 class="mb-0">
+                    <i class="bi bi-door-closed me-2"></i>Salas
+                    <small class="text-muted ms-2">(8 registros)</small>
+                </h5>
+            </div>
+            <div class="section-content" id="salas-section">
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Capacidad</th>
+                                <th>Equipamiento</th>
+                                <th>Estado</th>
+                                <th>Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Sala A-101</td>
+                                <td>4 personas</td>
+                                <td>Proyector, Pizarra</td>
+                                <td><span class="badge bg-success">Activa</span></td>
+                                <td>Aula</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Laboratorio B-205</td>
+                                <td>6 personas</td>
+                                <td>Computadoras, Proyector</td>
+                                <td><span class="badge bg-success">Activa</span></td>
+                                <td>Laboratorio</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Sala Estudio C-102</td>
+                                <td>8 personas</td>
+                                <td>Pizarra</td>
+                                <td><span class="badge bg-success">Activa</span></td>
+                                <td>Sala Estudio</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Sala D-301</td>
+                                <td>10 personas</td>
+                                <td>Proyector, Pizarra, Computadoras</td>
+                                <td><span class="badge bg-warning">Mantenimiento</span></td>
+                                <td>Aula</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN RESERVAS -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection('reservas')">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-check me-2"></i>Reservas Activas
+                    <small class="text-muted ms-2">(12 registros)</small>
+                </h5>
+            </div>
+            <div class="section-content" id="reservas-section">
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID Reserva</th>
+                                <th>Estudiante</th>
+                                <th>Sala</th>
+                                <th>Fecha</th>
+                                <th>Horario</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>5001</td>
+                                <td>Ana Rodríguez</td>
+                                <td>Sala A-101</td>
+                                <td>2024-11-25</td>
+                                <td>14:00 - 16:00</td>
+                                <td><span class="badge bg-success">En Curso</span></td>
+                            </tr>
+                            <tr>
+                                <td>5002</td>
+                                <td>Juan Pérez</td>
+                                <td>Laboratorio B-205</td>
+                                <td>2024-11-25</td>
+                                <td>16:30 - 18:30</td>
+                                <td><span class="badge bg-warning">Confirmada</span></td>
+                            </tr>
+                            <tr>
+                                <td>5003</td>
+                                <td>María López</td>
+                                <td>Sala Estudio C-102</td>
+                                <td>2024-11-26</td>
+                                <td>09:00 - 11:00</td>
+                                <td><span class="badge bg-warning">Confirmada</span></td>
+                            </tr>
+                            <tr>
+                                <td>5004</td>
+                                <td>Carlos García</td>
+                                <td>Sala A-101</td>
+                                <td>2024-11-26</td>
+                                <td>11:30 - 13:30</td>
+                                <td><span class="badge bg-warning">Confirmada</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId + '-section');
+            section.classList.toggle('show');
+        }
+
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Opcional: Abrir la primera sección por defecto
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleSection('estudiantes');
+        });
+    </script>
 </body>
 
 </html>
