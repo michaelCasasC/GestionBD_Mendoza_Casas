@@ -1,238 +1,203 @@
 <?php
-require_once '../config/database.php';
-
 class EstudianteModel
 {
     private $db;
 
     public function __construct()
     {
-        $this->db = (new Database())->getConnection();
-    }
+        // Conexión simple para pruebas - reemplaza con tu conexión real
+        $server = "localhost";
+        $database = "SistemaReservas";
+        $username = "usuario_estudiante";
+        $password = "Estudiante123!";
 
-    /**
-     * Obtener información del estudiante por correo
-     */
-    public function getEstudiantePorCorreo($correo)
-    {
         try {
-            $stmt = $this->db->prepare("
-                SELECT u.id_usuario, u.nombre, u.apellido, u.correo, r.nombre as rol
-                FROM Usuario u
-                INNER JOIN Rol r ON u.id_rol = r.id_rol
-                WHERE u.correo = ? AND u.activo = 1
-            ");
-            $stmt->execute([$correo]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->db = new PDO(
+                "sqlsrv:Server=$server;Database=$database",
+                $username,
+                $password
+            );
+            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            return null;
+            throw new Exception("Error de conexión: " . $e->getMessage());
         }
     }
 
-    /**
-     * Obtener todas las salas disponibles
-     */
     public function getSalasDisponibles()
     {
         try {
-            $stmt = $this->db->prepare("
-                SELECT s.id_sala, s.nombre, s.capacidad, s.equipamiento, s.estado, 
-                       t.nombre as tipo_sala
-                FROM Sala s
-                INNER JOIN Tipo_Sala t ON s.id_tipo = t.id_tipo
-                WHERE s.estado = 'activa'
-                ORDER BY s.nombre
-            ");
+            $query = "SELECT 
+                        s.id_sala,
+                        s.nombre,
+                        s.capacidad,
+                        s.equipamiento,
+                        s.estado,
+                        ts.nombre as tipo_sala
+                      FROM Sala s
+                      INNER JOIN Tipo_Sala ts ON s.id_tipo = ts.id_tipo
+                      WHERE s.estado = 'activa'";
+
+            $stmt = $this->db->prepare($query);
             $stmt->execute();
+
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         } catch (PDOException $e) {
-            return [];
+            throw new Exception("Error al obtener salas: " . $e->getMessage());
         }
     }
 
-    /**
-     * Crear nueva reserva usando el procedimiento almacenado
-     */
-    public function crearReserva($id_usuario, $id_sala, $fecha, $hora_inicio, $hora_fin)
-    {
-        try {
-            $stmt = $this->db->prepare("
-                EXEC sp_CrearReserva 
-                    @id_usuario = ?, 
-                    @id_sala = ?, 
-                    @fecha = ?, 
-                    @hora_inicio = ?, 
-                    @hora_fin = ?
-            ");
-            $stmt->execute([$id_usuario, $id_sala, $fecha, $hora_inicio, $hora_fin]);
-
-            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($resultado['status'] === 'success') {
-                return [
-                    'success' => true,
-                    'mensaje' => $resultado['mensaje'],
-                    'id_reserva' => $resultado['id_reserva'] ?? null
-                ];
-            } else {
-                return [
-                    'success' => false,
-                    'mensaje' => $resultado['mensaje']
-                ];
-            }
-        } catch (PDOException $e) {
-            return [
-                'success' => false,
-                'mensaje' => 'Error al crear reserva: ' . $e->getMessage()
-            ];
-        }
-    }
-
-    /**
-     * Obtener reservas del estudiante
-     */
-    public function getReservasPorEstudiante($id_usuario)
-    {
-        try {
-            $stmt = $this->db->prepare("
-                SELECT r.id_reserva, r.fecha, r.hora_inicio, r.hora_fin, r.estado, 
-                       r.fecha_creacion, s.nombre as sala, s.capacidad, s.equipamiento
-                FROM Reserva r
-                INNER JOIN Sala s ON r.id_sala = s.id_sala
-                WHERE r.id_usuario = ?
-                ORDER BY r.fecha DESC, r.hora_inicio DESC
-            ");
-            $stmt->execute([$id_usuario]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            return [];
-        }
-    }
-
-    /**
-     * Cancelar reserva usando el procedimiento almacenado
-     */
-    public function cancelarReserva($id_reserva, $id_usuario)
-    {
-        try {
-            $stmt = $this->db->prepare("
-                EXEC sp_CancelarReserva 
-                    @id_reserva = ?, 
-                    @id_usuario = ?
-            ");
-            $stmt->execute([$id_reserva, $id_usuario]);
-
-            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($resultado['status'] === 'success') {
-                return [
-                    'success' => true,
-                    'mensaje' => $resultado['mensaje']
-                ];
-            } else {
-                return [
-                    'success' => false,
-                    'mensaje' => $resultado['mensaje']
-                ];
-            }
-        } catch (PDOException $e) {
-            return [
-                'success' => false,
-                'mensaje' => 'Error al cancelar reserva: ' . $e->getMessage()
-            ];
-        }
-    }
-
-    /**
-     * Verificar disponibilidad de sala
-     */
     public function verificarDisponibilidad($id_sala, $fecha, $hora_inicio, $hora_fin)
     {
         try {
-            $stmt = $this->db->prepare("
-                SELECT COUNT(*) as total
-                FROM Reserva
-                WHERE id_sala = ? 
-                AND fecha = ?
-                AND estado IN ('confirmada', 'en_curso')
-                AND (
-                    (? BETWEEN hora_inicio AND hora_fin) OR
-                    (? BETWEEN hora_inicio AND hora_fin) OR
-                    (hora_inicio BETWEEN ? AND ?)
-                )
-            ");
-            $stmt->execute([$id_sala, $fecha, $hora_inicio, $hora_fin, $hora_inicio, $hora_fin]);
+            $query = "SELECT COUNT(*) as conflictos
+                      FROM Reserva 
+                      WHERE id_sala = :id_sala 
+                      AND fecha = :fecha
+                      AND estado IN ('confirmada', 'en_curso')
+                      AND (
+                          (:hora_inicio BETWEEN hora_inicio AND hora_fin) OR
+                          (:hora_fin BETWEEN hora_inicio AND hora_fin) OR
+                          (hora_inicio BETWEEN :hora_inicio AND :hora_fin)
+                      )";
 
-            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $resultado['total'] == 0;
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':id_sala', $id_sala);
+            $stmt->bindParam(':fecha', $fecha);
+            $stmt->bindParam(':hora_inicio', $hora_inicio);
+            $stmt->bindParam(':hora_fin', $hora_fin);
+            $stmt->execute();
+
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['conflictos'] == 0;
+
         } catch (PDOException $e) {
-            return false;
+            throw new Exception("Error al verificar disponibilidad: " . $e->getMessage());
         }
     }
 
-    /**
-     * Obtener información de una sala específica
-     */
+    public function crearReserva($id_usuario, $id_sala, $fecha, $hora_inicio, $hora_fin)
+    {
+        try {
+            $query = "EXEC sp_CrearReserva @id_usuario = :id_usuario, 
+                                          @id_sala = :id_sala, 
+                                          @fecha = :fecha, 
+                                          @hora_inicio = :hora_inicio, 
+                                          @hora_fin = :hora_fin";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':id_usuario', $id_usuario);
+            $stmt->bindParam(':id_sala', $id_sala);
+            $stmt->bindParam(':fecha', $fecha);
+            $stmt->bindParam(':hora_inicio', $hora_inicio);
+            $stmt->bindParam(':hora_fin', $hora_fin);
+
+            $stmt->execute();
+
+            // El procedimiento almacenado retorna un resultset
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result && $result['status'] === 'success') {
+                return [
+                    'success' => true,
+                    'mensaje' => $result['mensaje'],
+                    'id_reserva' => $result['id_reserva'] ?? null
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'mensaje' => $result['mensaje'] ?? 'Error al crear reserva'
+                ];
+            }
+
+        } catch (PDOException $e) {
+            throw new Exception("Error al crear reserva: " . $e->getMessage());
+        }
+    }
+
+    public function getReservasPorEstudiante($id_usuario)
+    {
+        try {
+            $query = "SELECT 
+                        r.id_reserva,
+                        r.fecha,
+                        r.hora_inicio,
+                        r.hora_fin,
+                        r.estado,
+                        s.nombre as sala,
+                        s.capacidad,
+                        ts.nombre as tipo_sala
+                      FROM Reserva r
+                      INNER JOIN Sala s ON r.id_sala = s.id_sala
+                      INNER JOIN Tipo_Sala ts ON s.id_tipo = ts.id_tipo
+                      WHERE r.id_usuario = :id_usuario
+                      ORDER BY r.fecha DESC, r.hora_inicio DESC";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':id_usuario', $id_usuario);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            throw new Exception("Error al obtener reservas: " . $e->getMessage());
+        }
+    }
+
+    public function cancelarReserva($id_reserva, $id_usuario)
+    {
+        try {
+            $query = "EXEC sp_CancelarReserva @id_reserva = :id_reserva, 
+                                             @id_usuario = :id_usuario";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':id_reserva', $id_reserva);
+            $stmt->bindParam(':id_usuario', $id_usuario);
+
+            $stmt->execute();
+
+            // El procedimiento almacenado retorna un resultset
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result && $result['status'] === 'success') {
+                return [
+                    'success' => true,
+                    'mensaje' => $result['mensaje']
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'mensaje' => $result['mensaje'] ?? 'Error al cancelar reserva'
+                ];
+            }
+
+        } catch (PDOException $e) {
+            throw new Exception("Error al cancelar reserva: " . $e->getMessage());
+        }
+    }
+
     public function getSalaPorId($id_sala)
     {
         try {
-            $stmt = $this->db->prepare("
-                SELECT s.id_sala, s.nombre, s.capacidad, s.equipamiento, s.estado,
-                       t.nombre as tipo_sala
-                FROM Sala s
-                INNER JOIN Tipo_Sala t ON s.id_tipo = t.id_tipo
-                WHERE s.id_sala = ?
-            ");
-            $stmt->execute([$id_sala]);
+            $query = "SELECT 
+                        s.id_sala,
+                        s.nombre,
+                        s.capacidad,
+                        s.equipamiento,
+                        s.estado,
+                        ts.nombre as tipo_sala
+                      FROM Sala s
+                      INNER JOIN Tipo_Sala ts ON s.id_tipo = ts.id_tipo
+                      WHERE s.id_sala = :id_sala";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':id_sala', $id_sala);
+            $stmt->execute();
+
             return $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            return null;
-        }
-    }
 
-    /**
-     * Obtener reservas confirmadas del estudiante (próximas)
-     */
-    public function getReservasProximas($id_usuario)
-    {
-        try {
-            $stmt = $this->db->prepare("
-                SELECT r.id_reserva, r.fecha, r.hora_inicio, r.hora_fin, r.estado,
-                       s.nombre as sala, s.capacidad, s.equipamiento
-                FROM Reserva r
-                INNER JOIN Sala s ON r.id_sala = s.id_sala
-                WHERE r.id_usuario = ? 
-                AND r.estado IN ('confirmada', 'en_curso')
-                AND r.fecha >= CAST(GETDATE() AS DATE)
-                ORDER BY r.fecha ASC, r.hora_inicio ASC
-            ");
-            $stmt->execute([$id_usuario]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            return [];
-        }
-    }
-
-    /**
-     * Obtener historial de reservas del estudiante
-     */
-    public function getHistorialReservas($id_usuario)
-    {
-        try {
-            $stmt = $this->db->prepare("
-                SELECT r.id_reserva, r.fecha, r.hora_inicio, r.hora_fin, r.estado,
-                       r.fecha_creacion, s.nombre as sala
-                FROM Reserva r
-                INNER JOIN Sala s ON r.id_sala = s.id_sala
-                WHERE r.id_usuario = ?
-                AND (r.estado IN ('completada', 'cancelada') 
-                     OR (r.estado = 'confirmada' AND r.fecha < CAST(GETDATE() AS DATE)))
-                ORDER BY r.fecha DESC, r.hora_inicio DESC
-            ");
-            $stmt->execute([$id_usuario]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            return [];
+            throw new Exception("Error al obtener sala: " . $e->getMessage());
         }
     }
 }
