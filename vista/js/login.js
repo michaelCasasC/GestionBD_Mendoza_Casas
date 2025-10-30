@@ -36,7 +36,7 @@ d.addEventListener("click", (e) => {
   if (e.target.matches("#btnEstudiante")) {
     handleEstudiante(e.target);
   }
-  if (e.target.matches("#btDocente")) {
+  if (e.target.matches("#btnDocente")) {
     handleDocente(e.target);
   }
   if (e.target.matches("#btnAdmin")) {
