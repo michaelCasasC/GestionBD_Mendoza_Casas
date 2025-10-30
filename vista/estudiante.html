@@ -482,19 +482,168 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Variables globales
         let salaSeleccionada = '';
         let capacidadSala = 0;
+        let idSalaSeleccionada = 0;
 
-        function abrirModalSolicitud(nombreSala, capacidad) {
-            salaSeleccionada = nombreSala;
-            capacidadSala = capacidad;
-            document.getElementById('modalSalaNombre').textContent = nombreSala;
-            document.getElementById('numeroPersonas').max = capacidad;
+        // Cargar datos al iniciar la página
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarSalas();
+            cargarMisReservas();
+        });
 
-            const modal = new bootstrap.Modal(document.getElementById('modalSolicitud'));
-            modal.show();
+        /**
+         * Manejo de respuestas del servidor (verifica JSON, errores, etc.)
+         */
+        async function handleFetchResponse(response) {
+            const contentType = response.headers.get('content-type');
+
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Respuesta no JSON del servidor:', text.substring(0, 200));
+
+                let errorMsg = 'Error del servidor';
+                if (text.includes('Fatal error') || text.includes('Parse error')) {
+                    errorMsg = 'Error en el servidor. Contacte al administrador.';
+                } else if (text.includes('No autorizado')) {
+                    errorMsg = 'Sesión expirada. Por favor, inicie sesión nuevamente.';
+                    setTimeout(() => window.location.href = '../controlador/logout.php', 2000);
+                }
+                throw new Error(errorMsg);
+            }
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+
+            return response.json();
         }
 
+        /**
+         * Cargar todas las salas disponibles desde la base de datos
+         */
+        function cargarSalas() {
+            fetch('../controlador/EstudianteController.php?action=salas', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(handleFetchResponse)
+                .then(data => {
+                    if (data.success) {
+                        mostrarSalas(data.salas);
+                    } else {
+                        console.error('Error al cargar salas:', data.mensaje);
+                        mostrarErrorSalas('Error: ' + (data.mensaje || 'No se pudieron cargar las salas'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando salas:', error);
+                    mostrarErrorSalas(error.message || 'Error de conexión al cargar las salas');
+                });
+        }
+
+        /**
+         * Mostrar salas en el DOM
+         */
+        function mostrarSalas(salas) {
+            const contenedorSalas = document.querySelector('.seccion-izquierda');
+            const titulo = contenedorSalas.querySelector('.titulo-seccion');
+
+            contenedorSalas.innerHTML = '';
+            contenedorSalas.appendChild(titulo);
+
+            if (!salas || salas.length === 0) {
+                contenedorSalas.innerHTML += `
+				<div class="alert alert-info">
+					<i class="fas fa-info-circle me-2"></i>
+					No hay salas disponibles en este momento
+				</div>`;
+                return;
+            }
+
+            salas.forEach(sala => {
+                const tarjetaSala = crearTarjetaSala(sala);
+                contenedorSalas.appendChild(tarjetaSala);
+            });
+        }
+
+        /**
+         * Mostrar error al cargar salas
+         */
+        function mostrarErrorSalas(mensaje) {
+            const contenedorSalas = document.querySelector('.seccion-izquierda');
+            const titulo = contenedorSalas.querySelector('.titulo-seccion');
+
+            contenedorSalas.innerHTML = '';
+            contenedorSalas.appendChild(titulo);
+
+            contenedorSalas.innerHTML += `
+			<div class="alert alert-danger">
+				<i class="fas fa-exclamation-triangle me-2"></i>${mensaje}
+			</div>`;
+        }
+
+        /**
+         * Crear tarjeta HTML para una sala
+         */
+        function crearTarjetaSala(sala) {
+            const div = document.createElement('div');
+            div.className = 'tarjeta-sala';
+
+            const estaDisponible = sala.estado === 'activa';
+            const textoBoton = estaDisponible ? 'Solicitar Esta Sala' : 'No Disponible';
+            const iconoBoton = estaDisponible ? 'fa-paper-plane' : 'fa-ban';
+
+            div.innerHTML = `
+			<div class="d-flex justify-content-between align-items-start mb-3">
+				<h3 class="nombre-sala mb-0">${escapeHtml(sala.nombre)}</h3>
+				<span class="badge-disponible ${!estaDisponible ? 'bg-secondary' : ''}">
+					${estaDisponible ? 'Disponible' : 'No disponible'}
+				</span>
+			</div>
+			<p class="info-sala"><i class="fas fa-users"></i> Capacidad: ${sala.capacidad} personas</p>
+			<p class="info-sala"><i class="fas fa-desktop"></i> Equipamiento: ${escapeHtml(sala.equipamiento || 'No especificado')}</p>
+			<p class="info-sala mb-0"><i class="fas fa-info-circle"></i> Tipo: ${escapeHtml(sala.tipo_sala || 'No especificado')}</p>
+			<button class="btn boton-solicitar"
+				onclick="abrirModalSolicitud('${escapeHtml(sala.nombre)}', ${sala.capacidad}, ${sala.id_sala})"
+				${!estaDisponible ? 'disabled' : ''}>
+				<i class="fas ${iconoBoton} me-2"></i>${textoBoton}
+			</button>`;
+            return div;
+        }
+
+        /**
+         * Abrir modal de solicitud
+         */
+        function abrirModalSolicitud(nombreSala, capacidad, idSala) {
+            salaSeleccionada = nombreSala;
+            capacidadSala = capacidad;
+            idSalaSeleccionada = idSala;
+
+            document.getElementById('modalSalaNombre').textContent = nombreSala;
+            document.getElementById('numeroPersonas').max = capacidad;
+            document.getElementById('numeroPersonas').value = 1;
+
+            const hoy = new Date();
+            const fechaHoy = hoy.toISOString().split('T')[0];
+            document.getElementById('fechaSolicitud').min = fechaHoy;
+            document.getElementById('fechaSolicitud').value = fechaHoy;
+
+            const horaProxima = new Date(hoy.getTime() + 60 * 60 * 1000);
+            const horaInicio = horaProxima.getHours().toString().padStart(2, '0') + ':00';
+            const horaFin = (horaProxima.getHours() + 1).toString().padStart(2, '0') + ':00';
+
+            document.getElementById('horaInicio').value = horaInicio;
+            document.getElementById('horaFin').value = horaFin;
+            document.getElementById('motivoSolicitud').value = '';
+
+            new bootstrap.Modal(document.getElementById('modalSolicitud')).show();
+        }
+
+        /**
+         * Enviar solicitud de reserva
+         */
         function enviarSolicitud() {
             const fecha = document.getElementById('fechaSolicitud').value;
             const horaInicio = document.getElementById('horaInicio').value;
@@ -502,54 +651,215 @@
             const motivo = document.getElementById('motivoSolicitud').value;
             const personas = document.getElementById('numeroPersonas').value;
 
+            // Validaciones
             if (!fecha || !horaInicio || !horaFin || !motivo || !personas) {
-                alert('Por favor, completa todos los campos');
+                mostrarAlerta('Por favor, completa todos los campos', 'warning');
                 return;
             }
-
             if (parseInt(personas) > capacidadSala) {
-                alert(`Esta sala solo tiene capacidad para ${capacidadSala} personas`);
+                mostrarAlerta(`Esta sala solo tiene capacidad para ${capacidadSala} personas`, 'warning');
+                return;
+            }
+            if (parseInt(personas) < 1) {
+                mostrarAlerta('El número de personas debe ser al menos 1', 'warning');
+                return;
+            }
+            if (horaFin <= horaInicio) {
+                mostrarAlerta('La hora de fin debe ser mayor que la hora de inicio', 'warning');
                 return;
             }
 
-            // Simular envío de solicitud
-            alert(`Solicitud enviada para ${salaSeleccionada}\nFecha: ${fecha}\nHorario: ${horaInicio} - ${horaFin}\nMotivo: ${motivo}`);
-
-            // Cerrar modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('modalSolicitud'));
-            modal.hide();
-
-            // Limpiar formulario
-            document.getElementById('formSolicitud').reset();
-        }
-
-        function cancelarSolicitud(idSolicitud) {
-            if (confirm('¿Estás seguro de que deseas cancelar esta solicitud?')) {
-                alert('Solicitud cancelada exitosamente');
-                console.log('Cancelando solicitud:', idSolicitud);
+            const fechaSeleccionada = new Date(fecha + 'T' + horaInicio);
+            const ahora = new Date();
+            if (fechaSeleccionada < ahora) {
+                mostrarAlerta('No puedes reservar para una fecha y hora que ya pasó', 'warning');
+                return;
             }
+
+            // Botón en modo "loading"
+            const botonEnviar = document.querySelector('#modalSolicitud .boton-solicitar');
+            const textoOriginal = botonEnviar.innerHTML;
+            botonEnviar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+            botonEnviar.disabled = true;
+
+            // Enviar datos
+            const formData = new FormData();
+            formData.append('id_sala', idSalaSeleccionada);
+            formData.append('fecha', fecha);
+            formData.append('hora_inicio', horaInicio);
+            formData.append('hora_fin', horaFin);
+            formData.append('motivo', motivo);
+            formData.append('personas', personas);
+
+            fetch('../controlador/EstudianteController.php?action=solicitar', {
+                method: 'POST',
+                body: formData
+            })
+                .then(handleFetchResponse)
+                .then(data => {
+                    if (data.success) {
+                        mostrarAlerta('¡Reserva creada exitosamente!', 'success');
+                        cargarMisReservas();
+                    } else {
+                        mostrarAlerta(data.message || 'Error al crear la reserva', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarAlerta('Error en la conexión con el servidor', 'error');
+                })
+                .finally(() => {
+                    botonEnviar.innerHTML = textoOriginal;
+                    botonEnviar.disabled = false;
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalSolicitud'));
+                    modal.hide();
+                    document.getElementById('formSolicitud').reset();
+                });
         }
 
+        /**
+         * Cargar mis reservas
+         */
+        function cargarMisReservas() {
+            fetch('../controlador/EstudianteController.php?action=mis_reservas', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(handleFetchResponse)
+                .then(data => {
+                    if (data.success) {
+                        mostrarReservas(data.reservas);
+                    } else {
+                        mostrarErrorReservas('Error: ' + (data.mensaje || 'No se pudieron cargar las reservas'));
+                    }
+                })
+                .catch(error => {
+                    mostrarErrorReservas(error.message || 'Error de conexión al cargar las reservas');
+                });
+        }
+
+        /**
+         * Mostrar reservas en el DOM
+         */
+        function mostrarReservas(reservas) {
+            const contenedorReservas = document.querySelector('.seccion-derecha');
+            const titulo = contenedorReservas.querySelector('.titulo-seccion');
+
+            contenedorReservas.innerHTML = '';
+            contenedorReservas.appendChild(titulo);
+
+            if (!reservas || reservas.length === 0) {
+                contenedorReservas.innerHTML += `
+				<div class="alert alert-info">
+					<i class="fas fa-info-circle me-2"></i>No tienes reservas activas
+				</div>`;
+                return;
+            }
+
+            reservas.forEach(reserva => {
+                contenedorReservas.appendChild(crearTarjetaReserva(reserva));
+            });
+        }
+
+        /**
+         * Cancelar reserva
+         */
+        function cancelarReserva(idReserva) {
+            if (!confirm('¿Estás seguro de que deseas cancelar esta reserva?')) return;
+
+            const botones = document.querySelectorAll(`[onclick="cancelarReserva(${idReserva})"]`);
+            botones.forEach(btn => {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            });
+
+            const formData = new FormData();
+            formData.append('id_reserva', idReserva);
+
+            fetch('../controlador/EstudianteController.php?action=cancelar', {
+                method: 'POST',
+                body: formData
+            })
+                .then(handleFetchResponse)
+                .then(data => {
+                    if (data.success) {
+                        mostrarAlerta('Reserva cancelada exitosamente', 'success');
+                    } else {
+                        mostrarAlerta(data.mensaje || 'Error al cancelar la reserva', 'error');
+                    }
+                    cargarMisReservas();
+                })
+                .catch(error => {
+                    mostrarAlerta(error.message || 'Error al cancelar la reserva', 'error');
+                    cargarMisReservas();
+                });
+        }
+
+        /**
+         * Cerrar sesión
+         */
         function cerrarSesion() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = 'login.html';
+            if (confirm('¿Deseas cerrar sesión?')) {
+                window.location.href = '../controlador/logout.php';
             }
+        }
+
+        /**
+         * Mostrar alerta flotante
+         */
+        function mostrarAlerta(mensaje, tipo = 'info') {
+            document.querySelectorAll('.alert-dismissible').forEach(a => a.remove());
+
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo === 'error' ? 'danger' : tipo} alert-dismissible fade show`;
+            alerta.style.cssText = `
+			position: fixed;
+			top: 100px;
+			right: 20px;
+			z-index: 9999;
+			min-width: 300px;
+			max-width: 500px;`;
+
+            const icono =
+                tipo === 'success' ? 'fa-check-circle' :
+                    tipo === 'error' ? 'fa-exclamation-circle' :
+                        'fa-exclamation-triangle';
+
+            alerta.innerHTML = `
+			<i class="fas ${icono} me-2"></i>${mensaje}
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+
+            document.body.appendChild(alerta);
+
+            setTimeout(() => alerta.remove(), 5000);
+        }
+
+        /**
+         * Escapar texto HTML
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Navegación suave
         document.querySelectorAll('a[href^="#"]').forEach(enlace => {
-            enlace.addEventListener('click', function (e) {
+            enlace.addEventListener('click', e => {
                 e.preventDefault();
-                const objetivo = document.querySelector(this.getAttribute('href'));
-                if (objetivo) {
-                    objetivo.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                const objetivo = document.querySelector(enlace.getAttribute('href'));
+                if (objetivo) objetivo.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                 document.querySelectorAll('.enlace-nav').forEach(nav => nav.classList.remove('activo'));
-                this.classList.add('activo');
+                enlace.classList.add('activo');
             });
         });
-    </script>
-</body>
 
-</html>
+        // Actualización automática cada 2 minutos
+        setInterval(() => {
+            cargarSalas();
+            cargarMisReservas();
+        }, 120000);
+    </script>
+
+</body>
