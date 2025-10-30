@@ -1,3 +1,16 @@
+<?php
+    include_once '../controlador/AuthController.php';
+  $authController = new AuthController();
+    
+    $message_error ="";
+
+
+    if(!$authController->login()){
+        $message_error = "Credenciales incorrectas. Por favor, inténtalo de nuevo.";
+    }
+
+
+                    ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -154,13 +167,14 @@
             <div class="col-md-6 panel-derecho p-5">
                 <h2 class="titulo-formulario mb-4">Iniciar Sesión</h2>
 
-                <form id="formularioLogin">
+                <form id="formularioLogin" method="POST" >
                     <!-- Email -->
                     <div class="mb-3">
                         <label for="correo" class="form-label fw-medium text-secondary">Email</label>
                         <div class="entrada-con-icono">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" class="form-control" id="correo" placeholder="tu@email.com">
+                            <input id="email" type="email" name="email" class="form-control"
+                                placeholder="tu@email.com">
                         </div>
                     </div>
 
@@ -169,14 +183,19 @@
                         <label for="contrasena" class="form-label fw-medium text-secondary">Contraseña</label>
                         <div class="entrada-con-icono">
                             <i class="fas fa-lock"></i>
-                            <input type="password" class="form-control" id="contrasena" placeholder="••••••••">
+                            <input id="password" type="password" name="password" class="form-control"
+                                placeholder="••••••••">
                         </div>
                     </div>
 
                     <!-- Botón Ingresar -->
-                    <button type="submit" class="btn boton-ingresar w-100 mb-4">
+                    <button type="submit" id="submit" class="btn boton-ingresar w-100 mb-4">
                         Ingresar al Sistema
                     </button>
+
+                    <?php
+                    echo $message_error;
+                    ?>
 
                     <!-- Sección de Demostración -->
                     <div class="seccion-demostracion">
@@ -184,103 +203,26 @@
                             credenciales:</p>
 
                         <div class="d-grid gap-2">
-                            <button type="button" class="btn boton-demo demo1" onclick="entrarComoEstudiante()">
+                            <button type="button" class="btn boton-demo demo1" id="btnEstudiante">
                                 <i class="fas fa-user-graduate me-2"></i>Entrar como Estudiante
                             </button>
-                            <button type="button" class="btn boton-demo demo2" onclick="entrarComoAdministrativo()">
-                                <i class="fas fa-user-tie me-2"></i>Entrar como Administrativo
+                            <button type="button" class="btn boton-demo demo2" id="btnDocente">
+                                <i class="fas fa-user-tie me-2"></i>Entrar como Docente
                             </button>
-                            <button type="button" class="btn boton-demo demo3" onclick="entrarComoAdmin()">
+                            <button type="button" class="btn boton-demo demo3" id="btnAdmin">
                                 <i class="fas fa-user-shield me-2"></i>Entrar como Admin
                             </button>
                         </div>
                     </div>
+
+                    
                 </form>
             </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Credenciales de demostración
-        const credencialesDemo = {
-            estudiante: {
-                correo: 'estudiante@ejemplo.com',
-                contrasena: 'estudiante123'
-            },
-            administrativo: {
-                correo: 'admin@ejemplo.com',
-                contrasena: 'admin123'
-            },
-            administrador: {
-                correo: 'superadmin@ejemplo.com',
-                contrasena: 'admin456'
-            }
-        };
+    <script src="js/login.js" ></script>
 
-        // Función para entrar como estudiante
-        function entrarComoEstudiante() {
-            document.getElementById('correo').value = credencialesDemo.estudiante.correo;
-            document.getElementById('contrasena').value = credencialesDemo.estudiante.contrasena;
-            iniciarSesion('Estudiante');
-        }
-
-        // Función para entrar como administrativo
-        function entrarComoAdministrativo() {
-            document.getElementById('correo').value = credencialesDemo.administrativo.correo;
-            document.getElementById('contrasena').value = credencialesDemo.administrativo.contrasena;
-            iniciarSesion('Administrativo');
-        }
-
-        // Función para entrar como admin
-        function entrarComoAdmin() {
-            document.getElementById('correo').value = credencialesDemo.administrador.correo;
-            document.getElementById('contrasena').value = credencialesDemo.administrador.contrasena;
-            iniciarSesion('Administrador');
-        }
-
-        // Función para iniciar sesión y redirigir
-        function iniciarSesion(tipoUsuario) {
-            alert('¡Bienvenido! Has ingresado como ' + tipoUsuario);
-
-            // Redirigir según el tipo de usuario
-            switch (tipoUsuario) {
-                case 'Estudiante':
-                    window.location.href = 'estudiante.html';
-                    break;
-                case 'Administrativo':
-                    window.location.href = 'administracion.html';
-                    break;
-                case 'Administrador':
-                    window.location.href = 'admin.html';
-                    break;
-                default:
-                    alert('Tipo de usuario no reconocido');
-            }
-        }
-
-        // Manejo del formulario
-        document.getElementById('formularioLogin').addEventListener('submit', function (evento) {
-            evento.preventDefault();
-
-            const correo = document.getElementById('correo').value;
-            const contrasena = document.getElementById('contrasena').value;
-
-            if (correo && contrasena) {
-                // Determinar el tipo de usuario basado en el email
-                let tipoUsuario = 'Estudiante'; // Por defecto
-
-                if (correo === 'admin@ejemplo.com') {
-                    tipoUsuario = 'Administrativo';
-                } else if (correo === 'superadmin@ejemplo.com') {
-                    tipoUsuario = 'Administrador';
-                }
-
-                iniciarSesion(tipoUsuario);
-            } else {
-                alert('Por favor, completa todos los campos');
-            }
-        });
-    </script>
 </body>
 
 </html

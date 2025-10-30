@@ -487,11 +487,16 @@
         let capacidadSala = 0;
         let idSalaSeleccionada = 0;
 
+<<<<<<< HEAD
         // Cargar datos al iniciar la página
+=======
+        // Cargar salas al iniciar la página
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
         document.addEventListener('DOMContentLoaded', function () {
             cargarSalas();
             cargarMisReservas();
         });
+<<<<<<< HEAD
 
         /**
          * Manejo de respuestas del servidor (verifica JSON, errores, etc.)
@@ -642,6 +647,101 @@
         }
 
         /**
+=======
+
+        /**
+         * Cargar todas las salas disponibles desde la base de datos
+         */
+        function cargarSalas() {
+            fetch('../controlador/EstudianteController.php?action=salas', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarSalas(data.salas);
+                    } else {
+                        console.error('Error al cargar salas');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar las salas disponibles');
+                });
+        }
+
+        /**
+         * Mostrar salas en el DOM
+         */
+        function mostrarSalas(salas) {
+            const contenedorSalas = document.querySelector('.seccion-izquierda');
+
+            // Limpiar contenido actual (excepto el título)
+            const titulo = contenedorSalas.querySelector('.titulo-seccion');
+            contenedorSalas.innerHTML = '';
+            contenedorSalas.appendChild(titulo);
+
+            // Crear tarjetas de salas
+            salas.forEach(sala => {
+                const tarjetaSala = crearTarjetaSala(sala);
+                contenedorSalas.appendChild(tarjetaSala);
+            });
+        }
+
+        /**
+         * Crear tarjeta HTML para una sala
+         */
+        function crearTarjetaSala(sala) {
+            const div = document.createElement('div');
+            div.className = 'tarjeta-sala';
+            div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h3 class="nombre-sala mb-0">${sala.nombre}</h3>
+            <span class="badge-disponible">${sala.estado === 'activa' ? 'Disponible' : 'No disponible'}</span>
+        </div>
+        <p class="info-sala">
+            <i class="fas fa-users"></i>
+            <span>Capacidad: ${sala.capacidad} personas</span>
+        </p>
+        <p class="info-sala">
+            <i class="fas fa-desktop"></i>
+            <span>Equipamiento: ${sala.equipamiento || 'No especificado'}</span>
+        </p>
+        <p class="info-sala mb-0">
+            <i class="fas fa-info-circle"></i>
+            <span>Tipo: ${sala.tipo_sala}</span>
+        </p>
+        <button class="btn boton-solicitar" onclick="abrirModalSolicitud('${sala.nombre}', ${sala.capacidad}, ${sala.id_sala})">
+            <i class="fas fa-paper-plane me-2"></i>Solicitar Esta Sala
+        </button>
+    `;
+            return div;
+        }
+
+        /**
+         * Abrir modal de solicitud
+         */
+        function abrirModalSolicitud(nombreSala, capacidad, idSala) {
+            salaSeleccionada = nombreSala;
+            capacidadSala = capacidad;
+            idSalaSeleccionada = idSala;
+
+            document.getElementById('modalSalaNombre').textContent = nombreSala;
+            document.getElementById('numeroPersonas').max = capacidad;
+
+            // Establecer fecha mínima como hoy
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaSolicitud').min = hoy;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalSolicitud'));
+            modal.show();
+        }
+
+        /**
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
          * Enviar solicitud de reserva
          */
         function enviarSolicitud() {
@@ -669,6 +769,7 @@
                 return;
             }
 
+<<<<<<< HEAD
             const fechaSeleccionada = new Date(fecha + 'T' + horaInicio);
             const ahora = new Date();
             if (fechaSeleccionada < ahora) {
@@ -683,18 +784,33 @@
             botonEnviar.disabled = true;
 
             // Enviar datos
+=======
+            // Validar que la hora de fin sea mayor que la de inicio
+            if (horaFin <= horaInicio) {
+                alert('La hora de fin debe ser mayor que la hora de inicio');
+                return;
+            }
+
+            // Crear FormData
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
             const formData = new FormData();
             formData.append('id_sala', idSalaSeleccionada);
             formData.append('fecha', fecha);
             formData.append('hora_inicio', horaInicio);
             formData.append('hora_fin', horaFin);
+<<<<<<< HEAD
             formData.append('motivo', motivo);
             formData.append('personas', personas);
 
+=======
+
+            // Enviar solicitud al servidor (CORREGIDO: usa "controlador")
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
             fetch('../controlador/EstudianteController.php?action=solicitar', {
                 method: 'POST',
                 body: formData
             })
+<<<<<<< HEAD
                 .then(handleFetchResponse)
                 .then(data => {
                     if (data.success) {
@@ -702,10 +818,29 @@
                         cargarMisReservas();
                     } else {
                         mostrarAlerta(data.message || 'Error al crear la reserva', 'error');
+=======
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('¡Reserva creada exitosamente!');
+
+                        // Cerrar modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalSolicitud'));
+                        modal.hide();
+
+                        // Limpiar formulario
+                        document.getElementById('formSolicitud').reset();
+
+                        // Recargar reservas
+                        cargarMisReservas();
+                    } else {
+                        alert('Error: ' + data.mensaje);
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
+<<<<<<< HEAD
                     mostrarAlerta('Error en la conexión con el servidor', 'error');
                 })
                 .finally(() => {
@@ -714,27 +849,50 @@
                     const modal = bootstrap.Modal.getInstance(document.getElementById('modalSolicitud'));
                     modal.hide();
                     document.getElementById('formSolicitud').reset();
+=======
+                    alert('Error al enviar la solicitud. Por favor, intenta de nuevo.');
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
                 });
         }
 
         /**
+<<<<<<< HEAD
          * Cargar mis reservas
+=======
+         * Cargar mis reservas (CORREGIDO: usa "controlador")
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
          */
         function cargarMisReservas() {
             fetch('../controlador/EstudianteController.php?action=mis_reservas', {
                 method: 'GET',
+<<<<<<< HEAD
                 headers: { 'Accept': 'application/json' }
             })
                 .then(handleFetchResponse)
+=======
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
                 .then(data => {
                     if (data.success) {
                         mostrarReservas(data.reservas);
                     } else {
+<<<<<<< HEAD
                         mostrarErrorReservas('Error: ' + (data.mensaje || 'No se pudieron cargar las reservas'));
                     }
                 })
                 .catch(error => {
                     mostrarErrorReservas(error.message || 'Error de conexión al cargar las reservas');
+=======
+                        console.error('Error al cargar reservas');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
                 });
         }
 
@@ -743,6 +901,7 @@
          */
         function mostrarReservas(reservas) {
             const contenedorReservas = document.querySelector('.seccion-derecha');
+<<<<<<< HEAD
             const titulo = contenedorReservas.querySelector('.titulo-seccion');
 
             contenedorReservas.innerHTML = '';
@@ -758,10 +917,28 @@
 
             reservas.forEach(reserva => {
                 contenedorReservas.appendChild(crearTarjetaReserva(reserva));
+=======
+
+            // Limpiar contenido actual (excepto el título)
+            const titulo = contenedorReservas.querySelector('.titulo-seccion');
+            contenedorReservas.innerHTML = '';
+            contenedorReservas.appendChild(titulo);
+
+            if (reservas.length === 0) {
+                contenedorReservas.innerHTML += '<p class="text-muted">No tienes reservas aún</p>';
+                return;
+            }
+
+            // Crear tarjetas de reservas
+            reservas.forEach(reserva => {
+                const tarjetaReserva = crearTarjetaReserva(reserva);
+                contenedorReservas.appendChild(tarjetaReserva);
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
             });
         }
 
         /**
+<<<<<<< HEAD
          * Cancelar reserva
          */
         function cancelarReserva(idReserva) {
@@ -772,6 +949,83 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
             });
+=======
+         * Crear tarjeta HTML para una reserva
+         */
+        function crearTarjetaReserva(reserva) {
+            const div = document.createElement('div');
+
+            // Determinar clase de estado
+            let claseEstado = '';
+            let textoEstado = '';
+            let claseEtiqueta = '';
+
+            switch (reserva.estado) {
+                case 'confirmada':
+                    claseEstado = 'solicitud-pendiente';
+                    textoEstado = 'Confirmada';
+                    claseEtiqueta = 'estado-aprobado';
+                    break;
+                case 'en_curso':
+                    claseEstado = 'solicitud-aprobada';
+                    textoEstado = 'En Curso';
+                    claseEtiqueta = 'estado-aprobado';
+                    break;
+                case 'completada':
+                    claseEstado = 'solicitud-aprobada';
+                    textoEstado = 'Completada';
+                    claseEtiqueta = 'estado-aprobado';
+                    break;
+                case 'cancelada':
+                    claseEstado = 'solicitud-rechazada';
+                    textoEstado = 'Cancelada';
+                    claseEtiqueta = 'estado-rechazado';
+                    break;
+                default:
+                    claseEstado = 'solicitud-pendiente';
+                    textoEstado = reserva.estado;
+                    claseEtiqueta = 'estado-pendiente';
+            }
+
+            div.className = `tarjeta-solicitud ${claseEstado}`;
+
+            // Formatear fecha
+            const fecha = new Date(reserva.fecha).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Botón cancelar solo si está confirmada
+            const botonCancelar = reserva.estado === 'confirmada' ?
+                `<button class="btn boton-cancelar ms-2" onclick="cancelarReserva(${reserva.id_reserva})">
+            <i class="fas fa-times"></i>
+        </button>` : '';
+
+            div.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="info-solicitud flex-grow-1">
+                <h5>${reserva.sala}</h5>
+                <small><i class="fas fa-calendar me-2"></i>Fecha: ${fecha}</small>
+                <small><i class="fas fa-clock me-2"></i>Horario: ${reserva.hora_inicio} - ${reserva.hora_fin}</small>
+                <small><i class="fas fa-users me-2"></i>Capacidad: ${reserva.capacidad} personas</small>
+                <span class="etiqueta-estado ${claseEtiqueta}">${textoEstado}</span>
+            </div>
+            ${botonCancelar}
+        </div>
+    `;
+
+            return div;
+        }
+
+        /**
+         * Cancelar una reserva (CORREGIDO: usa "controlador")
+         */
+        function cancelarReserva(idReserva) {
+            if (!confirm('¿Estás seguro de que deseas cancelar esta reserva?')) {
+                return;
+            }
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
 
             const formData = new FormData();
             formData.append('id_reserva', idReserva);
@@ -780,6 +1034,7 @@
                 method: 'POST',
                 body: formData
             })
+<<<<<<< HEAD
                 .then(handleFetchResponse)
                 .then(data => {
                     if (data.success) {
@@ -792,11 +1047,29 @@
                 .catch(error => {
                     mostrarAlerta(error.message || 'Error al cancelar la reserva', 'error');
                     cargarMisReservas();
+=======
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Reserva cancelada exitosamente');
+                        cargarMisReservas();
+                    } else {
+                        alert('Error: ' + data.mensaje);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cancelar la reserva');
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
                 });
         }
 
         /**
+<<<<<<< HEAD
          * Cerrar sesión
+=======
+         * Cerrar sesión (CORREGIDO: usa "controlador")
+>>>>>>> 1f660a05f89934ef7c41c478c97705b245634e29
          */
         function cerrarSesion() {
             if (confirm('¿Deseas cerrar sesión?')) {
