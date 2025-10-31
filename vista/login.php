@@ -21,7 +21,7 @@ $message_error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
     <style>
         body {min-height: 100vh; background: #eafde7;}
         .panel-izquierdo {
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('images/img-lab.jpg');
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('../Rename.jpg');
             background-size: cover; background-position: center; color: #eafde7; border-radius: 0 40px 40px 0;
         }
         .titulo-principal {font-size: 2.8rem; font-weight: 700; line-height: 1.2;}
@@ -84,8 +84,8 @@ $message_error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
                         <p class="text-center text-secondary mb-3 fw-medium">¿Quieres probar? Usa estas credenciales:</p>
                         <div class="d-grid gap-2">
                             <button type="button" class="btn boton-demo demo1" id="btnEstudiante">Estudiante</button>
-                            <button type="button" class="btn boton-demo demo2" id="btnDocente">Docente</button>
-                            <button type="button" class="btn boton-demo demo3" id="btnAdmin">Admin</button>
+                            <button type="button" class="btn boton-demo demo2" id="btnDocente"><a href="administracion.html" style="colo: inherit;">Docente</a> </button>
+                            <button type="button" class="btn boton-demo demo3" id="btnAdmin"><a href="admin.html">Admin</a> </button>
                         </div>
                     </div>
 
@@ -110,9 +110,7 @@ $message_error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
         document.getElementById('submit').click();
     };
     document.getElementById('btnAdmin').onclick = () => {
-        document.getElementById('email').value = "admin@universidad.edu";
-        document.getElementById('password').value = "123456";
-        document.getElementById('submit').click();
+       window.location.href = "";
     };
     </script>
 </body>

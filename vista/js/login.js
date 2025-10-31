@@ -9,7 +9,7 @@ function handleEstudiante($btn) {
   login();
 }
 function handleDocente($btn) {
-  $email.value = "docente@universidad.edu";
+  $email.value = "administrativo@universidad.edu";
   $password.value = "123456";
   login();
 }

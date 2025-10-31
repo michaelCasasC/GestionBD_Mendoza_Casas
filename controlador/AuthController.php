@@ -23,8 +23,8 @@ class AuthController {
                 // Guardar todos los datos necesarios en la sesión
                 $_SESSION['user_id'] = $user['id_usuario'];
                 $_SESSION['user_nombre'] = $user['nombre'];
-                $_SESSION['user_email'] = $email;  // 🔑 importante
-                $_SESSION['user_rol'] = $user['user_rol'];
+                $_SESSION['user_email'] = $email;  //importante
+                $_SESSION['user_rol'] = $user['rol'];
 
                 // Redirigir según rol
                 switch ($user['rol']) {
@@ -37,12 +37,10 @@ class AuthController {
                     case 3:
                         header("Location: ../vista/admin.php");
                         exit;
-                    default:
-                        header("Location: ./text_conexion.php");
                 }
             } else {
-                header("Location: ../vista/login.php?error=Credenciales+incorrectas");
-                exit;
+               // header("Location: ../vista/login.php?error=Credenciales+incorrectas");
+                //exit;
             }
         }
     }
