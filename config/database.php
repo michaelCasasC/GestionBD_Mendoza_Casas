@@ -1,51 +1,28 @@
 <?php
-class Database
-{
-    private $server;
-    private $database = 'SistemaReservas';
-    private $user = 'login_estudiante';
-    private $password = 'Estudiante123!';
+class Database {
+    private $host = "USUARIO\\SQLEXPRESS"; 
+    private $db_name = "SistemaReservas";
+    private $user = "login_admin";
+    private $password = "Admin123!";
     private $conn;
 
-    public function __construct()
-    {
-        // Elegir servidor disponible
-        if ($this->servidorDisponible('USUARIO\\SQLEXPRESS')) {
-            $this->server = 'USUARIO\\SQLEXPRESS';
-        } else {
-            $this->server = 'localhost';
-        }
+    public function getConnection() {
+        $this->conn = null;
 
-        // Conectar
-        $this->connect();
-    }
-
-    // Método para verificar disponibilidad del servidor
-    private function servidorDisponible($serverName)
-    {
-        // Esto es un ejemplo simple usando @ para suprimir errores de conexión
-        $connectionInfo = array("Database" => $this->database, "UID" => $this->user, "PWD" => $this->password);
-        $connTest = @sqlsrv_connect($serverName, $connectionInfo);
-        if ($connTest) {
-            sqlsrv_close($connTest);
-            return true;
-        }
-        return false;
-    }
-
-    private function connect()
-    {
         try {
-            $connectionString = "sqlsrv:Server={$this->server};Database={$this->database}";
+            $connectionString = "sqlsrv:Server={$this->host};Database={$this->db_name}";
+            error_log("Intentando conectar: " . $connectionString);
+            
             $this->conn = new PDO($connectionString, $this->user, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die("Error de conexión: " . $e->getMessage());
+            
+            error_log("✅ Conexión exitosa a la base de datos");
+            
+        } catch (PDOException $exception) {
+            error_log("❌ Error de conexión: " . $exception->getMessage());
+            die("Error de conexión: " . $exception->getMessage());
         }
-    }
 
-    public function getConnection()
-    {
         return $this->conn;
     }
 }

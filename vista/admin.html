@@ -4,325 +4,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Sistema de Reservas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <title>Panel de Administración</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-dark: #00312D;
-            --accent-green: #BFF102;
-        }
-
-        .btn-accent {
-            background-color: var(--accent-green);
-            color: var(--primary-dark);
-            border: none;
-            font-weight: 600;
-        }
-
-        .btn-accent:hover {
-            background-color: #a8d900;
-        }
-
-        .table-custom th {
-            background-color: var(--primary-dark);
-            color: white;
-            border: none;
-        }
-
-        .section-card {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .section-header {
+        body {
             background-color: #f8f9fa;
-            padding: 1rem;
-            border-bottom: 1px solid #dee2e6;
-            cursor: pointer;
         }
 
-        .section-content {
-            display: none;
-            padding: 0;
+        .sidebar {
+            width: 220px;
+            background: #343a40;
+            height: 100vh;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 20px;
         }
 
-        .section-content.show {
-            display: block;
+        .sidebar h4 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar button {
+            width: 100%;
+            margin-bottom: 10px;
+            background: #495057;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .sidebar button:hover {
+            background: #6c757d;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+
+        table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
         }
     </style>
 </head>
 
 <body>
-    <!-- Navbar con logout -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #00312D;">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-shield-check"></i> Panel Admin
-            </a>
-            <div class="navbar-nav ms-auto">
-                <button class="btn btn-outline-warning btn-sm" onclick="cerrarSesion()">
-                    <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
-                </button>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container mt-4">
-        <h1 class="h3 mb-4">
-            <i class="bi bi-shield-check me-2"></i>Panel de Administración
-        </h1>
+    <div class="sidebar">
+        <h4>Administrador</h4>
+        <button onclick="toggleSection('estudiantes')">Estudiantes</button>
+        <button onclick="toggleSection('docentes')">Docentes</button>
+        <button onclick="toggleSection('salas')">Salas</button>
+        <button onclick="toggleSection('reservas')">Reservas</button>
+    </div>
 
-        <!-- SECCIÓN ESTUDIANTES -->
-        <div class="section-card">
-            <div class="section-header" onclick="toggleSection('estudiantes')">
-                <h5 class="mb-0">
-                    <i class="bi bi-people me-2"></i>Estudiantes
-                    <small class="text-muted ms-2">(40 registros)</small>
-                </h5>
-            </div>
-            <div class="section-content" id="estudiantes-section">
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Fecha Registro</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1001</td>
-                                <td>Ana Rodríguez</td>
-                                <td>ana@universidad.edu</td>
-                                <td>2024-10-15</td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                            </tr>
-                            <tr>
-                                <td>1002</td>
-                                <td>Juan Pérez</td>
-                                <td>juan@universidad.edu</td>
-                                <td>2024-10-16</td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                            </tr>
-                            <tr>
-                                <td>1003</td>
-                                <td>María López</td>
-                                <td>maria@universidad.edu</td>
-                                <td>2024-10-17</td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                            </tr>
-                            <tr>
-                                <td>1004</td>
-                                <td>Carlos García</td>
-                                <td>carlos@universidad.edu</td>
-                                <td>2024-10-18</td>
-                                <td><span class="badge bg-warning">Inactivo</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="content">
+        <div id="estudiantes-section" class="section">
+            <h3>Lista de Estudiantes</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Correo</th>
+                        <th>Fecha Registro</th>
+                        <th>Activo</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <!-- SECCIÓN DOCENTES/ADMINISTRATIVOS -->
-        <div class="section-card">
-            <div class="section-header" onclick="toggleSection('docentes')">
-                <h5 class="mb-0">
-                    <i class="bi bi-person-badge me-2"></i>Personal Administrativo y Docentes
-                    <small class="text-muted ms-2">(5 registros)</small>
-                </h5>
-            </div>
-            <div class="section-content" id="docentes-section">
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>2001</td>
-                                <td>Carlos Méndez</td>
-                                <td>carlos@universidad.edu</td>
-                                <td><span class="badge bg-success">Administrativo</span></td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                            </tr>
-                            <tr>
-                                <td>2002</td>
-                                <td>Laura Martínez</td>
-                                <td>laura@universidad.edu</td>
-                                <td><span class="badge bg-success">Administrativo</span></td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                            </tr>
-                            <tr>
-                                <td>2003</td>
-                                <td>Pedro Sánchez</td>
-                                <td>pedro@universidad.edu</td>
-                                <td><span class="badge bg-info">Docente</span></td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                            </tr>
-                            <tr>
-                                <td>2004</td>
-                                <td>Ana García</td>
-                                <td>ana.docente@universidad.edu</td>
-                                <td><span class="badge bg-info">Docente</span></td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="docentes-section" class="section" style="display:none;">
+            <h3>Lista de Docentes</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Activo</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <!-- SECCIÓN SALAS -->
-        <div class="section-card">
-            <div class="section-header" onclick="toggleSection('salas')">
-                <h5 class="mb-0">
-                    <i class="bi bi-door-closed me-2"></i>Salas
-                    <small class="text-muted ms-2">(8 registros)</small>
-                </h5>
-            </div>
-            <div class="section-content" id="salas-section">
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Capacidad</th>
-                                <th>Equipamiento</th>
-                                <th>Estado</th>
-                                <th>Tipo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Sala A-101</td>
-                                <td>4 personas</td>
-                                <td>Proyector, Pizarra</td>
-                                <td><span class="badge bg-success">Activa</span></td>
-                                <td>Aula</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Laboratorio B-205</td>
-                                <td>6 personas</td>
-                                <td>Computadoras, Proyector</td>
-                                <td><span class="badge bg-success">Activa</span></td>
-                                <td>Laboratorio</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>Sala Estudio C-102</td>
-                                <td>8 personas</td>
-                                <td>Pizarra</td>
-                                <td><span class="badge bg-success">Activa</span></td>
-                                <td>Sala Estudio</td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>Sala D-301</td>
-                                <td>10 personas</td>
-                                <td>Proyector, Pizarra, Computadoras</td>
-                                <td><span class="badge bg-warning">Mantenimiento</span></td>
-                                <td>Aula</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="salas-section" class="section" style="display:none;">
+            <h3>Salas Disponibles</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Capacidad</th>
+                        <th>Equipamiento</th>
+                        <th>Estado</th>
+                        <th>Tipo</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <!-- SECCIÓN RESERVAS -->
-        <div class="section-card">
-            <div class="section-header" onclick="toggleSection('reservas')">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar-check me-2"></i>Reservas Activas
-                    <small class="text-muted ms-2">(12 registros)</small>
-                </h5>
-            </div>
-            <div class="section-content" id="reservas-section">
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom mb-0">
-                        <thead>
-                            <tr>
-                                <th>ID Reserva</th>
-                                <th>Estudiante</th>
-                                <th>Sala</th>
-                                <th>Fecha</th>
-                                <th>Horario</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>5001</td>
-                                <td>Ana Rodríguez</td>
-                                <td>Sala A-101</td>
-                                <td>2024-11-25</td>
-                                <td>14:00 - 16:00</td>
-                                <td><span class="badge bg-success">En Curso</span></td>
-                            </tr>
-                            <tr>
-                                <td>5002</td>
-                                <td>Juan Pérez</td>
-                                <td>Laboratorio B-205</td>
-                                <td>2024-11-25</td>
-                                <td>16:30 - 18:30</td>
-                                <td><span class="badge bg-warning">Confirmada</span></td>
-                            </tr>
-                            <tr>
-                                <td>5003</td>
-                                <td>María López</td>
-                                <td>Sala Estudio C-102</td>
-                                <td>2024-11-26</td>
-                                <td>09:00 - 11:00</td>
-                                <td><span class="badge bg-warning">Confirmada</span></td>
-                            </tr>
-                            <tr>
-                                <td>5004</td>
-                                <td>Carlos García</td>
-                                <td>Sala A-101</td>
-                                <td>2024-11-26</td>
-                                <td>11:30 - 13:30</td>
-                                <td><span class="badge bg-warning">Confirmada</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="reservas-section" class="section" style="display:none;">
+            <h3>Reservas Activas</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Estudiante</th>
+                        <th>Sala</th>
+                        <th>Fecha</th>
+                        <th>Hora Inicio</th>
+                        <th>Hora Fin</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        function toggleSection(sectionId) {
-            const section = document.getElementById(sectionId + '-section');
-            section.classList.toggle('show');
+        function toggleSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(`${section}-section`).style.display = 'block';
         }
 
-        function cerrarSesion() {
-            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-                window.location.href = 'login.php';
-            }
-        }
-
-        // Opcional: Abrir la primera sección por defecto
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', async () => {
             toggleSection('estudiantes');
+
+            try {
+                const response = await fetch('../controlador/AdminController.php');
+                const data = await response.json();
+
+                renderTabla('estudiantes', data.estudiantes, ['id_usuario', 'nombre', 'apellido', 'correo', 'fecha_registro', 'activo']);
+                renderTabla('docentes', data.docentes, ['id_usuario', 'nombre', 'apellido', 'correo', 'rol', 'activo']);
+                renderTabla('salas', data.salas, ['id_sala', 'nombre', 'capacidad', 'equipamiento', 'estado', 'tipo']);
+                renderTabla('reservas', data.reservas, ['id_reserva', 'estudiante', 'sala', 'fecha', 'hora_inicio', 'hora_fin', 'estado']);
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            }
         });
+
+        function renderTabla(nombre, data, campos) {
+            const tbody = document.querySelector(`#${nombre}-section tbody`);
+            tbody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${campos.length}" class="text-center text-muted">No hay datos disponibles</td></tr>`;
+                return;
+            }
+
+            data.forEach(fila => {
+                const tr = document.createElement('tr');
+                campos.forEach(campo => {
+                    const td = document.createElement('td');
+                    td.textContent = fila[campo];
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
     </script>
 </body>
 

@@ -3,15 +3,6 @@ const d = document,
   $password = d.getElementById("password"),
   $submit = d.getElementById("submit");
 
-$usuarios = [
-  "estudiante@universidad.edu",
-  "123456",
-  "docente@universidad.edu",
-  "123456",
-  "admin@universidad.edu",
-  "123456",
-];
-
 function handleEstudiante($btn) {
   $email.value = "estudiante@universidad.edu";
   $password.value = "123456";
@@ -36,7 +27,7 @@ d.addEventListener("click", (e) => {
   if (e.target.matches("#btnEstudiante")) {
     handleEstudiante(e.target);
   }
-  if (e.target.matches("#btDocente")) {
+  if (e.target.matches("#btnDocente")) {
     handleDocente(e.target);
   }
   if (e.target.matches("#btnAdmin")) {

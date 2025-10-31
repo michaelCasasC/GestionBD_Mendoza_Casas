@@ -8,75 +8,73 @@ class AdminModel {
         $this->db = (new Database())->getConnection();
     }
 
-    /**
-     * Obtener todos los estudiantes
-     */
     public function getEstudiantes() {
         try {
-            $stmt = $this->db->query("
-                SELECT * FROM Usuarios WHERE rol = 'estudiante' 
-                ORDER BY nombre
-            ");
+            $sql = "
+                SELECT u.id_usuario, u.nombre, u.apellido, u.correo, u.fecha_registro, u.activo
+                FROM Usuario u
+                INNER JOIN Rol r ON u.id_rol = r.id_rol
+                WHERE r.nombre = 'estudiante'
+                ORDER BY u.nombre
+            ";
+            $stmt = $this->db->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Error en getEstudiantes: " . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtener todos los docentes
-     */
     public function getDocentes() {
         try {
-            $stmt = $this->db->query("
-                SELECT * FROM Usuarios WHERE rol = 'docente' 
-                ORDER BY nombre
-            ");
+            $sql = "
+                SELECT u.id_usuario, u.nombre, u.apellido, u.correo, r.nombre AS rol, u.activo
+                FROM Usuario u
+                INNER JOIN Rol r ON u.id_rol = r.id_rol
+                WHERE r.nombre IN ('docente', 'administrativo')
+                ORDER BY u.nombre
+            ";
+            $stmt = $this->db->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Error en getDocentes: " . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtener todas las salas
-     */
     public function getSalas() {
         try {
-            $stmt = $this->db->query("
-                SELECT * FROM Salas 
-                ORDER BY nombre
-            ");
+            $sql = "
+                SELECT s.id_sala, s.nombre, s.capacidad, s.equipamiento, s.estado, t.nombre AS tipo
+                FROM Sala s
+                INNER JOIN Tipo_Sala t ON s.id_tipo = t.id_tipo
+                ORDER BY s.nombre
+            ";
+            $stmt = $this->db->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Error en getSalas: " . $e->getMessage());
             return [];
         }
     }
 
-    /**
-     * Obtener estadísticas del sistema
-     */
-    public function getEstadisticas() {
+    public function getReservas() {
         try {
-            // Total estudiantes
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM Usuarios WHERE rol = 'estudiante'");
-            $estudiantes = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-
-            // Total docentes
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM Usuarios WHERE rol = 'docente'");
-            $docentes = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-
-            // Total salas
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM Salas");
-            $salas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-
-            return [
-                'estudiantes' => $estudiantes,
-                'docentes' => $docentes,
-                'salas' => $salas
-            ];
+            $sql = "
+                SELECT r.id_reserva, 
+                       CONCAT(u.nombre, ' ', u.apellido) AS estudiante, 
+                       s.nombre AS sala, r.fecha, r.hora_inicio, r.hora_fin, r.estado
+                FROM Reserva r
+                INNER JOIN Usuario u ON r.id_usuario = u.id_usuario
+                INNER JOIN Sala s ON r.id_sala = s.id_sala
+                WHERE r.estado IN ('confirmada', 'en_curso')
+                ORDER BY r.fecha DESC
+            ";
+            $stmt = $this->db->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            return ['estudiantes' => 0, 'docentes' => 0, 'salas' => 0];
+            error_log("Error en getReservas: " . $e->getMessage());
+            return [];
         }
     }
 }
