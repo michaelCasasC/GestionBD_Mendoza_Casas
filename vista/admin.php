@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+// Verificar que el usuario esté logueado y tenga rol correcto
+if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] != 1) {
+    header("Location: login.php");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 

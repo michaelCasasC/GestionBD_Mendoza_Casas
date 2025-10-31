@@ -268,3 +268,10 @@ GRANT EXECUTE TO rol_admin;
 GO
 
 GRANT SELECT ON SCHEMA::dbo TO rol_admin;
+
+USE SistemaReservas;
+GO
+
+GRANT SELECT ON SCHEMA::dbo TO rol_estudiante;
+GRANT INSERT, UPDATE ON Reserva TO rol_estudiante;
+GO

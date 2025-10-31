@@ -1,22 +1,18 @@
 <?php
-class dbEstudent {
-    private $host = "USUARIO\\SQLEXPRESS"; 
-    private $db_name = "SistemaReservas";
-    private $user = "login_estudiante";
-    private $password = "Estudiante123!";
-    private $conn;
+$server = "localhost\\SQLEXPRESS";
+$database = "SistemaReservas";
+$username = "login_estudiante"; // ajusta tu usuario
+$password = "Estudiante123!";     // ajusta tu contraseña
 
-    public function getConnection() {
-        $this->conn = null;
-
-        try {
-            $this->conn = new PDO("sqlsrv:Server={$this->host};Database={$this->db_name}", $this->user, $this->password);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $exception) {
-            die("Error de conexión: " . $exception->getMessage());
-        }
-
-        return $this->conn;
-    }
+try {
+    $pdo = new PDO(
+        "sqlsrv:Server=$server;Database=$database",
+        $username,
+        $password
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // echo "✅ Conexión exitosa"; // opcional
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
 ?>
