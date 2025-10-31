@@ -11,8 +11,8 @@ class LoginModel {
 
     public function login($email, $password) {
         try {
-            // ✅ Nombre correcto de la tabla: Usuario (como en tu SQL)
-            $query = "SELECT * FROM Usuario WHERE correo = :correo AND activo = 1";
+        
+            $query = "SELECT * FROM Usuario WHERE correo = :correo ";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':correo', $email);
             $stmt->execute();
